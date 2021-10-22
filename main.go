@@ -1,0 +1,50 @@
+package main
+
+import (
+	"io"
+	"syscall"
+
+	"github.com/grindlemire/log"
+	"github.com/vrecan/death"
+
+    "go-thread-model/pkg/server"
+)
+
+const children = 10
+
+func main() {
+	log.Init(log.Default)
+
+	d := death.NewDeath(syscall.SIGINT, syscall.SIGTERM)
+	goRoutines := []io.Closer{}
+
+	// Start our sum aggregate in one go routine
+	// s, err := aggregate.NewSum()
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	// s.Start()
+	// goRoutines = append(goRoutines, s)
+    server := server.New()
+    server.Start()
+	goRoutines = append(goRoutines, server)
+
+	// create 10 threads generating random counts at random intervals
+	// for i := 0; i < children; i++ {
+	// 	count, err := count.NewCounter(i,
+	// 		count.Agg(s),
+	// 	)
+	// 	if err != nil {
+	// 		log.Fatal(err)
+	// 	}
+	// 	count.Start()
+	// 	goRoutines = append(goRoutines, count)
+	// }
+
+	err := d.WaitForDeath(goRoutines...)
+	if err != nil {
+		log.Fatalf("failed to cleanly shut down all go routines: %v", err)
+	}
+
+	log.Info("successfully shutdown all go routines")
+}
