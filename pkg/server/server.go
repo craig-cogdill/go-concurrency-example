@@ -33,8 +33,8 @@ func shutdownHttpServer(server *http.Server) error {
 type server struct {
 	*life.Life
 	router *mux.Router
-    broadcast *broadcast.Broadcaster
-    numSubscribers int
+	broadcast *broadcast.Broadcaster
+	numSubscribers int
 }
 
 func New(b *broadcast.Broadcaster, listeners int) *server {

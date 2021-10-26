@@ -12,7 +12,6 @@ import (
 	"github.com/vrecan/life"
 )
 
-const hashSalt = "$2b$10$ZX1GlBS/ECiqQOb2xZrzP."
 type ThreadWorker interface {
 	Start()
 	Close() error
