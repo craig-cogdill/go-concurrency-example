@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io"
+	"os"
 	"runtime"
 	"syscall"
 
@@ -24,9 +25,19 @@ func calculateMaxThreads() int {
     return minimumThreads 
 }
 
+func configureLogging() {
+    logConfig := log.Default
+    logLevel := os.Getenv("LOG_LEVEL")
+    if len(logLevel) == 0 {
+        logLevel = string(log.Default.Level)
+    }
+    logConfig.Level = log.Level(logLevel)
+	log.Init(logConfig)
+}
+
 func main() {
-	log.Init(log.Default)
-	d := death.NewDeath(syscall.SIGINT, syscall.SIGTERM)
+    configureLogging()
+    d := death.NewDeath(syscall.SIGINT, syscall.SIGTERM)
     goRoutines := []io.Closer{}
 
     // Report on the number of threads
@@ -38,7 +49,7 @@ func main() {
 
     // Create and start workers
     for i := 0; i < numGoroutines; i++ {
-        worker := threadworker.New(broadcast)
+        worker := threadworker.New(broadcast, i)
         goRoutines = append(goRoutines, worker)
         worker.Start()
     }

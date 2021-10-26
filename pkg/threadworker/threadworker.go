@@ -1,6 +1,7 @@
 package threadworker
 
 import (
+	"fmt"
 	"strings"
 	"sync"
 
@@ -20,12 +21,14 @@ type ThreadWorker interface {
 type threadworker struct {
 	*life.Life
     listener *broadcast.Listener
+    id int
 }
 
-func New(b *broadcast.Broadcaster) ThreadWorker {
+func New(b *broadcast.Broadcaster, threadId int) ThreadWorker {
 	worker := threadworker{
 		Life: life.NewLife(),
         listener: b.Listen(),
+        id: threadId,
 	}
 	worker.SetRun(worker.run)
 	return worker 
@@ -36,10 +39,11 @@ func (w *threadworker) calculateHash() {
     for i := 0; i < 1000; i++ {
         sb.WriteString(uuid.NewString())
     }
-    _, err := bcrypt.GenerateFromPassword([]byte(sb.String()), bcrypt.DefaultCost)
+    hash, err := bcrypt.GenerateFromPassword([]byte(sb.String()), bcrypt.DefaultCost)
     if err != nil {
         log.Error("There was a problem generating a hash")
     }
+    log.Debugf("Worker %d: %s", w.id, hash)
 }
 
 func (w *threadworker) run() {
@@ -55,6 +59,7 @@ func (w *threadworker) run() {
                 log.Error("Unable to convert channel message to waitgroup... shit has hit the fan")
             }
             w.calculateHash()
+            log.Debug(fmt.Sprintf("Worker %d finished with hash", w.id))
             wg.Done() 
         default:
             continue

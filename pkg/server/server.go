@@ -1,6 +1,7 @@
 package server
 
 import (
+	// "fmt"
 	"context"
 	"net/http"
 	"time"
@@ -11,6 +12,8 @@ import (
 	"github.com/vrecan/life"
     "github.com/textileio/go-threads/broadcast"
 )
+
+const port = "8181"
 
 type Server interface {
 	Start()
@@ -44,42 +47,37 @@ func New(b *broadcast.Broadcaster, listeners int) *server {
         broadcast: b,
         numSubscribers: listeners, 
 	}
-
-    s.router.HandleFunc("/hash", s.runHashWithThreadWorkers)
+	s.router.HandleFunc("/hash", s.runHashWithThreadWorkers)
 	s.SetRun(s.run)
 	return s 
 }
 
 func (s *server) runHashWithThreadWorkers(w http.ResponseWriter, request *http.Request) {
+	log.Debug("Notifying workers of new API request")
+	var ping sync.WaitGroup
+	ping.Add(s.numSubscribers)
+	s.broadcast.Send(&ping) // signal the workers to do their thing
+	ping.Wait()
+	log.Debug("Workers finished with request")
 
-    var ping sync.WaitGroup
-    ping.Add(s.numSubscribers)
-    s.broadcast.Send(&ping) // signal the workers to do their thing
-    // Wait for all threads to complete their task
-    ping.Wait()
-
-    // Respond
-    w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-    w.Write([]byte("success"))
+	w.Write([]byte("success"))
 }
 
 func (s *server) run() {
-    log.Info("Starting server...")
+    log.Debugf("Starting server on port %d...", port)
     httpServer := http.Server{
-		Addr:    ":8181",
+		Addr:    (":"+port),
 		Handler: s.router,
 	}
 
     go launchHttpServer(&httpServer)
 
     // wait for a shutdown signal
-	for {
-		select {
-		case <-s.Done:
-            log.Info("Shutting down server...")
-            shutdownHttpServer(&httpServer)
-			return
-		}
+	for range(s.Done) {
+		log.Debug("Shutting down server...")
+		shutdownHttpServer(&httpServer)
+		return
 	}
 }
