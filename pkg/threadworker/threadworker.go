@@ -61,8 +61,6 @@ func (w *threadworker) run() {
 			w.calculateHash()
 			log.Debug(fmt.Sprintf("Worker %d reporting finished", w.id))
 			wg.Done()
-		default:
-			continue
 		}
 	}
 }

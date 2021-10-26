@@ -43,7 +43,7 @@ func main() {
 	numWorkers := calculateMaxThreads()
 	log.Info(fmt.Sprintf("Spawning %d workers... ", numWorkers))
 
-	broadcast := broadcast.NewBroadcaster(1)
+	broadcast := broadcast.NewBroadcaster(10000)
 
 	// Create and start workers
 	for i := 0; i < numWorkers; i++ {
