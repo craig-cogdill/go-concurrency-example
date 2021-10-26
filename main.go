@@ -40,22 +40,20 @@ func main() {
 	d := death.NewDeath(syscall.SIGINT, syscall.SIGTERM)
 	goRoutines := []io.Closer{}
 
-	// Report on the number of threads
-	numGoroutines := calculateMaxThreads()
-	log.Info(fmt.Sprintf("Spawning %d goroutines... ", numGoroutines))
+	numWorkers := calculateMaxThreads()
+	log.Info(fmt.Sprintf("Spawning %d workers... ", numWorkers))
 
-	// Create the broadcaster for notifying the threadpool
 	broadcast := broadcast.NewBroadcaster(1)
 
 	// Create and start workers
-	for i := 0; i < numGoroutines; i++ {
+	for i := 0; i < numWorkers; i++ {
 		worker := threadworker.New(broadcast, i)
 		goRoutines = append(goRoutines, worker)
 		worker.Start()
 	}
 
 	// Start the HTTP server
-	server := server.New(broadcast, numGoroutines)
+	server := server.New(broadcast, numWorkers)
 	server.Start()
 	goRoutines = append(goRoutines, server)
 
@@ -64,6 +62,5 @@ func main() {
 		log.Fatalf("failed to cleanly shut down all go routines: %v", err)
 	}
 	broadcast.Discard()
-
 	log.Info("successfully shutdown all go routines")
 }
