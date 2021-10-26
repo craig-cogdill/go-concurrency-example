@@ -53,13 +53,13 @@ func (w *threadworker) run() {
 		case <-w.Done:
 			return
 		case ping := <-w.listener.Channel():
-            // Convert the message received into a WaitGroup for signalling that this thread is done
+            // Convert the message received into a WaitGroup for signaling that this thread is done
             wg, ok := ping.(*sync.WaitGroup)
             if !ok {
-                log.Error("Unable to convert channel message to waitgroup... shit has hit the fan")
+                log.Errorf("Worker %d: Unable to convert channel message to waitgroup", w.id)
             }
             w.calculateHash()
-            log.Debug(fmt.Sprintf("Worker %d finished with hash", w.id))
+            log.Debug(fmt.Sprintf("Worker %d reporting finished", w.id))
             wg.Done() 
         default:
             continue

@@ -1,7 +1,6 @@
 package server
 
 import (
-	// "fmt"
 	"context"
 	"net/http"
 	"time"
@@ -56,7 +55,7 @@ func (s *server) runHashWithThreadWorkers(w http.ResponseWriter, request *http.R
 	log.Debug("Notifying workers of new API request")
 	var ping sync.WaitGroup
 	ping.Add(s.numSubscribers)
-	s.broadcast.Send(&ping) // signal the workers to do their thing
+	s.broadcast.Send(&ping)
 	ping.Wait()
 	log.Debug("Workers finished with request")
 
@@ -74,7 +73,6 @@ func (s *server) run() {
 
     go launchHttpServer(&httpServer)
 
-    // wait for a shutdown signal
 	for range(s.Done) {
 		log.Debug("Shutting down server...")
 		shutdownHttpServer(&httpServer)
