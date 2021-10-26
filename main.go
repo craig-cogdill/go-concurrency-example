@@ -1,50 +1,66 @@
 package main
 
 import (
+	"fmt"
 	"io"
+	"os"
+	"runtime"
 	"syscall"
 
 	"github.com/grindlemire/log"
+	"github.com/textileio/go-threads/broadcast"
 	"github.com/vrecan/death"
 
-    "go-thread-model/pkg/server"
+	"go-thread-model/pkg/server"
+	"go-thread-model/pkg/threadworker"
 )
 
-const children = 10
+const minimumThreads = 4
+
+func calculateMaxThreads() int {
+	availableCpus := runtime.NumCPU() - 1
+	if availableCpus > minimumThreads {
+		return availableCpus
+	}
+	return minimumThreads
+}
+
+func configureLogging() {
+	logConfig := log.Default
+	logLevel := os.Getenv("LOG_LEVEL")
+	if len(logLevel) == 0 {
+		logLevel = string(log.Default.Level)
+	}
+	logConfig.Level = log.Level(logLevel)
+	log.Init(logConfig)
+}
 
 func main() {
-	log.Init(log.Default)
-
+	configureLogging()
 	d := death.NewDeath(syscall.SIGINT, syscall.SIGTERM)
 	goRoutines := []io.Closer{}
 
-	// Start our sum aggregate in one go routine
-	// s, err := aggregate.NewSum()
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// s.Start()
-	// goRoutines = append(goRoutines, s)
-    server := server.New()
-    server.Start()
-	goRoutines = append(goRoutines, server)
+	numWorkers := calculateMaxThreads()
+	log.Info(fmt.Sprintf("Spawning %d workers... ", numWorkers))
 
-	// create 10 threads generating random counts at random intervals
-	// for i := 0; i < children; i++ {
-	// 	count, err := count.NewCounter(i,
-	// 		count.Agg(s),
-	// 	)
-	// 	if err != nil {
-	// 		log.Fatal(err)
-	// 	}
-	// 	count.Start()
-	// 	goRoutines = append(goRoutines, count)
-	// }
+	broadcast := broadcast.NewBroadcaster(1)
+
+	// Create and start workers
+	for i := 0; i < numWorkers; i++ {
+		worker := threadworker.New(broadcast, i)
+		goRoutines = append(goRoutines, worker)
+		worker.Start()
+	}
+
+	// Start the HTTP server
+	server := server.New(broadcast, numWorkers)
+	server.Start()
+	goRoutines = append(goRoutines, server)
 
 	err := d.WaitForDeath(goRoutines...)
 	if err != nil {
 		log.Fatalf("failed to cleanly shut down all go routines: %v", err)
 	}
-
+	broadcast.Discard()
 	log.Info("successfully shutdown all go routines")
 }
