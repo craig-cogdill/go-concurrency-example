@@ -3,13 +3,13 @@ package server
 import (
 	"context"
 	"net/http"
-	"time"
 	"sync"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/grindlemire/log"
+	"github.com/textileio/go-threads/broadcast"
 	"github.com/vrecan/life"
-    "github.com/textileio/go-threads/broadcast"
 )
 
 const port = "8181"
@@ -34,21 +34,21 @@ func shutdownHttpServer(server *http.Server) error {
 
 type server struct {
 	*life.Life
-	router *mux.Router
-	broadcast *broadcast.Broadcaster
+	router         *mux.Router
+	broadcast      *broadcast.Broadcaster
 	numSubscribers int
 }
 
 func New(b *broadcast.Broadcaster, listeners int) *server {
 	s := &server{
-		Life:   life.NewLife(),
-        router: mux.NewRouter(),
-        broadcast: b,
-        numSubscribers: listeners, 
+		Life:           life.NewLife(),
+		router:         mux.NewRouter(),
+		broadcast:      b,
+		numSubscribers: listeners,
 	}
 	s.router.HandleFunc("/hash", s.runHashWithThreadWorkers)
 	s.SetRun(s.run)
-	return s 
+	return s
 }
 
 func (s *server) runHashWithThreadWorkers(w http.ResponseWriter, request *http.Request) {
@@ -65,15 +65,15 @@ func (s *server) runHashWithThreadWorkers(w http.ResponseWriter, request *http.R
 }
 
 func (s *server) run() {
-    log.Debugf("Starting server on port %d...", port)
-    httpServer := http.Server{
-		Addr:    (":"+port),
+	log.Debugf("Starting server on port %d...", port)
+	httpServer := http.Server{
+		Addr:    (":" + port),
 		Handler: s.router,
 	}
 
-    go launchHttpServer(&httpServer)
+	go launchHttpServer(&httpServer)
 
-	for range(s.Done) {
+	for range s.Done {
 		log.Debug("Shutting down server...")
 		shutdownHttpServer(&httpServer)
 		return
