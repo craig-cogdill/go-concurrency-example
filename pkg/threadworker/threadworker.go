@@ -9,7 +9,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/grindlemire/log"
-	"github.com/textileio/go-threads/broadcast"
+	"github.com/craig-cogdill/go-broadcast/broadcast"
 	"github.com/vrecan/life"
 )
 
@@ -20,14 +20,14 @@ type ThreadWorker interface {
 
 type threadworker struct {
 	*life.Life
-	listener *broadcast.Listener
+	subscription *broadcast.Subscription
 	id       int
 }
 
-func New(b *broadcast.Broadcaster, threadId int) ThreadWorker {
+func New(b broadcast.Broadcaster, threadId int) ThreadWorker {
 	worker := threadworker{
 		Life:     life.NewLife(),
-		listener: b.Listen(),
+		subscription: b.Subscribe(),
 		id:       threadId,
 	}
 	worker.SetRun(worker.run)
@@ -47,12 +47,11 @@ func (w *threadworker) calculateHash() {
 }
 
 func (w *threadworker) run() {
-	defer w.listener.Discard()
 	for {
 		select {
 		case <-w.Done:
 			return
-		case ping := <-w.listener.Channel():
+		case ping := <-w.subscription.Queue():
 			// Convert the message received into a WaitGroup for signaling that this thread is done
 			wg, ok := ping.(*sync.WaitGroup)
 			if !ok {

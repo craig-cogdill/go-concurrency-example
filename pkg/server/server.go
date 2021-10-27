@@ -8,8 +8,8 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/grindlemire/log"
-	"github.com/textileio/go-threads/broadcast"
 	"github.com/vrecan/life"
+	"github.com/craig-cogdill/go-broadcast/broadcast"
 )
 
 const port = "8181"
@@ -35,11 +35,11 @@ func shutdownHttpServer(server *http.Server) error {
 type server struct {
 	*life.Life
 	router         *mux.Router
-	broadcast      *broadcast.Broadcaster
+	broadcast      broadcast.Broadcaster
 	numSubscribers int
 }
 
-func New(b *broadcast.Broadcaster, listeners int) *server {
+func New(b broadcast.Broadcaster, listeners int) *server {
 	s := &server{
 		Life:           life.NewLife(),
 		router:         mux.NewRouter(),
@@ -55,7 +55,7 @@ func (s *server) runHashWithThreadWorkers(w http.ResponseWriter, request *http.R
 	log.Debug("Notifying workers of new API request")
 	var ping sync.WaitGroup
 	ping.Add(s.numSubscribers)
-	s.broadcast.Send(&ping)
+	s.broadcast.Broadcast(&ping)
 	ping.Wait()
 	log.Debug("Workers finished with request")
 

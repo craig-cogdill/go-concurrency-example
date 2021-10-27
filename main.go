@@ -8,7 +8,7 @@ import (
 	"syscall"
 
 	"github.com/grindlemire/log"
-	"github.com/textileio/go-threads/broadcast"
+	"github.com/craig-cogdill/go-broadcast/broadcast"
 	"github.com/vrecan/death"
 
 	"go-thread-model/pkg/server"
@@ -43,7 +43,8 @@ func main() {
 	numWorkers := calculateMaxThreads()
 	log.Info(fmt.Sprintf("Spawning %d workers... ", numWorkers))
 
-	broadcast := broadcast.NewBroadcaster(1)
+	broadcast := broadcast.New()
+	defer broadcast.Close()
 
 	// Create and start workers
 	for i := 0; i < numWorkers; i++ {
@@ -61,6 +62,5 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to cleanly shut down all go routines: %v", err)
 	}
-	broadcast.Discard()
 	log.Info("successfully shutdown all go routines")
 }
