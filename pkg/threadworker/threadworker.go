@@ -20,7 +20,7 @@ type ThreadWorker interface {
 
 type threadworker struct {
 	*life.Life
-	subscription *broadcast.Subscription
+	subscription broadcast.Subscription
 	id           int
 }
 
@@ -54,15 +54,20 @@ func (w *threadworker) run() {
 		case ping := <-w.subscription.Queue():
 			// Convert the message received into a WaitGroup for signaling that this thread is done
 			wg, ok := ping.(*sync.WaitGroup)
-			defer wg.Done()
 			if !ok {
 				log.Errorf("Worker %d: Unable to convert channel message to waitgroup", w.id)
 			} else {
 				w.calculateHash()
 				log.Debug(fmt.Sprintf("Worker %d reporting finished", w.id))
 			}
+			wg.Done()
 		default:
 			continue
 		}
 	}
+}
+
+func (w threadworker) Close() error {
+	defer w.subscription.Unsubscribe()
+	return w.Life.Close()
 }

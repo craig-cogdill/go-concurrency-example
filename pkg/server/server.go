@@ -6,10 +6,10 @@ import (
 	"sync"
 	"time"
 
+	"github.com/craig-cogdill/go-broadcast/broadcast"
 	"github.com/gorilla/mux"
 	"github.com/grindlemire/log"
 	"github.com/vrecan/life"
-	"github.com/craig-cogdill/go-broadcast/broadcast"
 )
 
 const port = "8181"
@@ -65,7 +65,7 @@ func (s *server) runHashWithThreadWorkers(w http.ResponseWriter, request *http.R
 }
 
 func (s *server) run() {
-	log.Debugf("Starting server on port %d...", port)
+	log.Debugf("Starting server on port %v...", port)
 	httpServer := http.Server{
 		Addr:    (":" + port),
 		Handler: s.router,

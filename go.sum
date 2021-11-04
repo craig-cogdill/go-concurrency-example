@@ -2,8 +2,8 @@ github.com/BurntSushi/toml v0.3.1 h1:WXkYYl6Yr3qBf1K79EBnL4mak0OimBfB0XUf9Vl28OQ
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/cihub/seelog v0.0.0-20170130134532-f561c5e57575 h1:kHaBemcxl8o/pQ5VM1c8PVE1PubbNx3mjUr09OqWGCs=
 github.com/cihub/seelog v0.0.0-20170130134532-f561c5e57575/go.mod h1:9d6lWj8KzO/fd/NrVaLscBKmPigpZpn5YawRPw+e3Yo=
-github.com/craig-cogdill/go-broadcast v0.0.1 h1:rURGE9oPToo5qqNtcfn8mT0e6I7v2O1Wxivi7GOE4Aw=
-github.com/craig-cogdill/go-broadcast v0.0.1/go.mod h1:71JB1CGzDFWDXg1H83EZdYM6HHFEmmQIpiuBD4RxKbQ=
+github.com/craig-cogdill/go-broadcast v0.0.3-beta.2 h1:rT1CWlID5oUW+Oa61KlFx23IeGzpCo2UwVx5n4GnN9A=
+github.com/craig-cogdill/go-broadcast v0.0.3-beta.2/go.mod h1:71JB1CGzDFWDXg1H83EZdYM6HHFEmmQIpiuBD4RxKbQ=
 github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/google/uuid v1.3.0 h1:t6JiXgmwXMjEs8VusXIJk2BXHsn+wx8BZdTaoZ5fu7I=
