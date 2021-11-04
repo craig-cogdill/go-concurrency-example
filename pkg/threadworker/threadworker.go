@@ -7,9 +7,9 @@ import (
 
 	"golang.org/x/crypto/bcrypt"
 
+	"github.com/craig-cogdill/go-broadcast/broadcast"
 	"github.com/google/uuid"
 	"github.com/grindlemire/log"
-	"github.com/craig-cogdill/go-broadcast/broadcast"
 	"github.com/vrecan/life"
 )
 
@@ -21,14 +21,14 @@ type ThreadWorker interface {
 type threadworker struct {
 	*life.Life
 	subscription *broadcast.Subscription
-	id       int
+	id           int
 }
 
 func New(b broadcast.Broadcaster, threadId int) ThreadWorker {
 	worker := threadworker{
-		Life:     life.NewLife(),
+		Life:         life.NewLife(),
 		subscription: b.Subscribe(),
-		id:       threadId,
+		id:           threadId,
 	}
 	worker.SetRun(worker.run)
 	return worker
@@ -41,7 +41,7 @@ func (w *threadworker) calculateHash() {
 	}
 	hash, err := bcrypt.GenerateFromPassword([]byte(sb.String()), bcrypt.DefaultCost)
 	if err != nil {
-		log.Error("There was a problem generating a hash")
+		log.Errorf("Worker %d encountered a problem generating a hash", w.id)
 	}
 	log.Debugf("Worker %d: %s", w.id, hash)
 }
@@ -54,12 +54,13 @@ func (w *threadworker) run() {
 		case ping := <-w.subscription.Queue():
 			// Convert the message received into a WaitGroup for signaling that this thread is done
 			wg, ok := ping.(*sync.WaitGroup)
+			defer wg.Done()
 			if !ok {
 				log.Errorf("Worker %d: Unable to convert channel message to waitgroup", w.id)
+			} else {
+				w.calculateHash()
+				log.Debug(fmt.Sprintf("Worker %d reporting finished", w.id))
 			}
-			w.calculateHash()
-			log.Debug(fmt.Sprintf("Worker %d reporting finished", w.id))
-			wg.Done()
 		default:
 			continue
 		}
