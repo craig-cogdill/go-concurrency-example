@@ -4,7 +4,7 @@ go 1.15
 
 require (
 	github.com/cihub/seelog v0.0.0-20170130134532-f561c5e57575 // indirect
-	github.com/craig-cogdill/go-broadcast v0.0.3-beta.2
+	github.com/craig-cogdill/go-broadcast v0.0.4
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/mux v1.8.0
 	github.com/grindlemire/log v1.1.1
